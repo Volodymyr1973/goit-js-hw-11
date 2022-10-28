@@ -7,6 +7,7 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const formElement = document.querySelector('.search-form');
 const galleryEl = document.querySelector('.gallery');
+console.dir(galleryEl);
 const loadMoreEl = document.querySelector('.load-more');
 let page = 1;
 let response;
@@ -19,13 +20,11 @@ function onSearchPhoto(event) {
   page = 1;
   galleryEl.innerHTML = '';
   getPhoto();
-  console.clear();
+  // console.clear();
 }
 formElement.addEventListener('submit', onSearchPhoto);
 
 async function getPhoto() {
-  // let marcup;
-  // let response;
   try {
     response = await axios.get(
       `https://pixabay.com/api/?key=30855873-a6914290544a804f7a5292a28&q=${formElement[0].value}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`
@@ -97,4 +96,20 @@ function renderPhoto() {
     .join('');
 
   galleryEl.insertAdjacentHTML('beforeend', marcup);
+
+  function onClick(event) {
+    event.preventDefault();
+  }
+
+  galleryEl.addEventListener('click', onClick);
+
+  var lightbox = new SimpleLightbox('.gallery a', {
+    captions: true,
+    captionSelector: 'img',
+    captionType: 'alt',
+    captionPosition: 'bottom',
+    captionDelay: 250,
+    enableKeyboard: true,
+    heightRatio: 0.9,
+  });
 }
