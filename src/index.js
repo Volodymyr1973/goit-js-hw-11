@@ -1,61 +1,96 @@
+import './css/styles.css';
 import axios from 'axios';
 import Notiflix from 'notiflix';
-import SimpleLightbox from 'simplelightbox/dist/simple-lightbox.esm';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+
+console.dir(SimpleLightbox);
+
 var debounce = require('lodash.debounce');
+const DEBOUNCE_DELAY = 300;
+
+var lightbox = new SimpleLightbox('.gallery a', {
+  captions: true,
+  captionSelector: 'img',
+  captionType: 'alt',
+  captionPosition: 'bottom',
+  captionDelay: 250,
+  enableKeyboard: true,
+  heightRatio: 0.9,
+});
+
+console.log(lightbox);
+
+// let gallery = new SimpleLightbox('.gallery a');
+// gallery.on('show.simplelightbox', function () {
+//   // do something…
+// });
+
+// gallery.on('error.simplelightbox', function (e) {
+//   console.log(e); // some usefull information
+// });
 
 const formElement = document.querySelector('.search-form');
 console.dir(formElement);
 
-const inputEl = document.querySelector('.search-form input');
-console.log(inputEl);
+// const inputEl = document.querySelector('.search-form input');
+// console.log(inputEl);
 
-const btnSubmitEl = document.querySelector('.search-form button');
-console.log(btnSubmitEl);
+// const btnSubmitEl = document.querySelector('.search-form button');
+// console.log(btnSubmitEl);
 
 const galleryEl = document.querySelector('.gallery');
 console.log(galleryEl);
 
-function onInputPhoto(event) {
-  //   event.preventDefault();
-  //   console.log(event);
-  console.log(event.target.value);
-  //   photoName = event.target.value;
-  // console.log(photoName);
-  return event.target.value;
-}
-inputEl.addEventListener('input', onInputPhoto);
+const loadMoreEl = document.querySelector('.load-more');
+console.log(loadMoreEl);
 
-const photoName = onInputPhoto();
+let page = 1;
 
-console.log(photoName);
-// function onSubmitFormPhoto(event) {
-//   event.preventDefault();
-//   console.log(event);
-// }
-// btnSubmitEl.addEventListener('submit', onSubmitFormPhoto);
+// const { height: cardHeight } = document
+//   .querySelector('.gallery')
+//   .getBoundingClientRect();
+
+// window.scrollBy({
+//   top: cardHeight * 2,
+//   behavior: 'smooth',
+// });
 
 function onSearchPhoto(event) {
   event.preventDefault();
+  galleryEl.innerHTML = '';
+  console.log(formElement[0].value);
   console.log(event);
   getPhoto();
+  // loadMoreEl.classList.remove('is-hidden');
 }
 formElement.addEventListener('submit', onSearchPhoto);
 
 async function getPhoto() {
+  let marcup;
+  // console.log(formElement[0].value);
   try {
     const response = await axios.get(
-      'https://pixabay.com/api/?key=30855873-a6914290544a804f7a5292a28&q=ca456tgtt&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=1'
+      `https://pixabay.com/api/?key=30855873-a6914290544a804f7a5292a28&q=${formElement[0].value}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`
     );
     const allPhotos = response.data.hits;
-    if (allPhotos === []) {
-      Notiflix.Notify.failure('Qui timide rogat docet negare');
+    console.dir(response.data);
+    // console.log(allPhotos);
+    if (allPhotos.length === 0) {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
     } else {
-      const marcup = allPhotos.map(
-        photo => `
-          <div class="photo-card">
-      <img src="${photo.webformatURL}" alt="${photo.tags}" loading="lazy" />
+      Notiflix.Notify.success(
+        `Hooray! We found ${response.data.totalHits} images.`
+      );
+      marcup = allPhotos
+        .map(
+          photo => `
+          <div class="photo-card gallery__items">
+          <a class="gallery__item" href="${photo.largeImageURL}">
+      <img class="gallery__image" src="${photo.webformatURL}" alt="${photo.tags}" loading="lazy" title=""/>
+      </a>
       <div class="info">
         <p class="info-item">
           <b>Likes: ${photo.likes}</b>
@@ -72,12 +107,24 @@ async function getPhoto() {
       </div>
     </div>
           `
-      );
+        )
+        .join('');
     }
-    galleryEl.innerHTML = marcup;
-    console.log(response.data.hits);
+    galleryEl.insertAdjacentHTML('beforeend', marcup);
+    loadMoreEl.classList.remove('is-hidden');
   } catch (error) {
     console.error(error);
-    Notiflix.Notify.failure('Qui timide rogat docet negare');
+    loadMoreEl.classList.add('is-hidden');
+    Notiflix.Notify.failure(
+      `We're sorry, but you've reached the end of search results.`
+    );
   }
 }
+
+function onLoadPhoto(event) {
+  console.log(event);
+  page += 1;
+  getPhoto();
+}
+
+loadMoreEl.addEventListener('click', onLoadPhoto);
