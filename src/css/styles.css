@@ -40,6 +40,8 @@ body {
 
 .gallery__items {
   flex-basis: calc((100% - 36px) / 4);
+  text-decoration: none;
+  color: black;
 }
 
 .gallery__item {
