@@ -16,9 +16,10 @@ let allPhotos;
 function onSearchPhoto(event) {
   event.preventDefault();
   loadMoreEl.classList.add('is-hidden');
-  galleryEl.value = '';
+  page = 1;
   galleryEl.innerHTML = '';
   getPhoto();
+  console.clear();
 }
 formElement.addEventListener('submit', onSearchPhoto);
 
@@ -36,13 +37,13 @@ async function getPhoto() {
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
-    } else if (response.data.total <= 40) {
+    } else if (response.data.hits.length < 40) {
       Notiflix.Notify.success(
         `Hooray! We found ${response.data.totalHits} images.`
       );
       renderPhoto();
-      // loadMoreEl.classList.toggle('is-hidden');
-    } else if (response.data.total > 40) {
+      loadMoreEl.classList.add('is-hidden');
+    } else if (response.data.hits.length === 40) {
       Notiflix.Notify.success(
         `Hooray! We found ${response.data.totalHits} images.`
       );
